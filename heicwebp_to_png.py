@@ -41,7 +41,7 @@ def heicwebp_to_png(arguments: dict[str, str | list]) -> dict[str, str]:
         сообщением (str). При успехе, полным путем к созданным файлам (без указания их имен) (output_path).
 
     """
-    print(arguments)
+    print(f'Аргументы: {arguments}')
     return arguments
 
 # def validate_arguments(arguments: dict) -> dict:
