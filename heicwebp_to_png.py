@@ -1,21 +1,14 @@
 # ---
 # jupyter:
 #   jupytext:
+#     cell_metadata_filter: -all
 #     formats: ipynb,py:percent
-#     notebook_metadata_filter: jupytext_format_version
 #     text_representation:
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
 #       jupytext_version: 1.17.1
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
 # ---
-
-# %% [markdown]
-# # Конвертер HEIC/WEBP → PNG
 
 # %%
 def heicwebp_to_png(arguments: dict[str, str | list]) -> dict[str, str]:
@@ -44,6 +37,7 @@ def heicwebp_to_png(arguments: dict[str, str | list]) -> dict[str, str]:
     print(arguments)
     return arguments
 
+# %% [markdown]
 # def validate_arguments(arguments: dict) -> dict:
 #     # Проверяем, что arguments — это словарь
 #     if not isinstance(arguments, dict):
