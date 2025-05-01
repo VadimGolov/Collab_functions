@@ -75,7 +75,7 @@ def generate_colab_link(file_path: Path, cwd: Path):
 
 def main():
     # Определяем текущую рабочую директорию проекта
-    project_root = Path.cwd()
+    project_root = Path('D:\Storage\Zerocoder\Showcase\Collab_functions')
 
     # Находим все .py-файлы, кроме main.py
     py_files = list(project_root.glob('*.py'))
