@@ -1,7 +1,4 @@
-from pathlib import Path
-
-
-def heicwebp_to_png(arguments: dict[str, str | list | bool]):
+def heicwebp_to_png(arguments: dict[str, str | list | bool]) -> dict[str, str]:
     from pathlib import Path
     from PIL import Image, UnidentifiedImageError
     from pillow_heif import register_heif_opener
@@ -33,47 +30,47 @@ def heicwebp_to_png(arguments: dict[str, str | list | bool]):
         return {'status': 'error', 'message': message}
 
     # Проверка input_path
-    input_path = arguments.get('input_path', None)
+    input_path: str | None = arguments.get('input_path', None)
 
     if input_path is None:
-        err_code = 0
+        err_code: int = 0
     elif not isinstance(input_path, str):
-        err_code = 1
+        err_code: int = 1
     elif not Path(input_path).is_file():
-        err_code = 2
+        err_code: int = 2
     elif not Path(input_path).suffix in ('.heic', '.webp'):
-        err_code = 3
+        err_code: int = 3
     else:
-        err_code = -1
+        err_code: int = -1
 
-    input_error = ['Обязательный параметр input_path отсутствует',
-                   'Параметр input_path должен быть должен быть строкой',
-                   f'Файл: {input_path} не найден',
-                   f'Файл {input_path} должен иметь тип .heic или .webp']
+    input_error: list[str] = ['Обязательный параметр input_path отсутствует',
+                              'Параметр input_path должен быть должен быть строкой',
+                              f'Файл: {input_path} не найден',
+                              f'Файл {input_path} должен иметь тип .heic или .webp']
 
     if err_code != -1:
         return {'status': 'error', 'message': input_error}
 
     # Проверка output_path
-    output_path = arguments.get('output_path', None)
+    output_path: str | None = arguments.get('output_path', None)
 
     if output_path is None:
-        output_path = Path(input_path).parent
+        output_path: Path = Path(input_path).parent
     elif not isinstance(output_path, str):
-        err_code = 0
+        err_code: int = 0
     elif not Path(output_path).is_dir():
-        err_code = 1
+        err_code: int = 1
     else:
-        err_code = -1
+        err_code: int = -1
 
-    output_error = ['Параметр output_path должен быть строкой',
-                    f'Папка: {output_path} не найдена или не является папкой']
+    output_error: list[str] = ['Параметр output_path должен быть строкой',
+                               f'Папка: {output_path} не найдена или не является папкой']
 
     if err_code != -1:
         return {'status': 'error', 'message': output_error}
 
     # Проверка overwrite
-    overwrite = arguments.get('overwrite', True)
+    overwrite: bool = arguments.get('overwrite', True)
     if not isinstance(overwrite, bool):
         return {'status': 'error', 'message': '"overwrite" должен быть типа bool'}
 
@@ -92,20 +89,22 @@ def heicwebp_to_png(arguments: dict[str, str | list | bool]):
     except UnidentifiedImageError:
         return {'status': 'error', 'message': f'Не удалось открыть файл {input_path}'}
 
-    output_name = Path(input_path).stem + '.png'
-    output_image = Path(output_path, output_name)
-
     if overwrite:
-        src_image.save(output_image)
+        output_name: str = Path(input_path).stem + '.png'
+        output_image: Path = Path(output_path, output_name)
+
     else:
-        number = 1
+        number: int = 1
+        output_name: str = Path(input_path).stem + f'[{number}].png'
+        output_image: Path = Path(output_path, output_name)
+
         while output_image.exists():
-            output_name = Path(input_path).stem + f'[{number}].png'
-            output_image = Path(output_path, output_name)
             number += 1
+            output_name: str = Path(input_path).stem + f'[{number}].png'
+            output_image: Path = Path(output_path, output_name)
 
+    try:
         src_image.save(output_image)
-
-    src_image.close()
-
-    return {'status': 'success', 'message': f'{output_image}'}
+    finally:
+        src_image.close()
+        return {'status': 'success', 'message': f'{output_image}'}
