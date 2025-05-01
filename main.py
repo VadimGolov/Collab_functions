@@ -1,6 +1,7 @@
 import subprocess
 import sys
-import os
+# import pyperclip
+import webbrowser
 from pathlib import Path
 from urllib.parse import quote_plus
 from loguru import logger
@@ -56,6 +57,17 @@ def generate_colab_link(file_path: Path):
     rel_path = file_path.relative_to(Path.cwd()).as_posix()
     url = f'https://colab.research.google.com/github/{GITHUB_USERNAME}/{GITHUB_REPO}/blob/{GITHUB_BRANCH}/{quote_plus(rel_path)}'
     logger.success(f'Colab URL: {url}')
+    # try:
+    #     pyperclip.copy(url)
+    #     logger.info('Ссылка скопирована в буфер обмена.')
+    # except pyperclip.PyperclipException:
+    #     logger.warning('Не удалось скопировать в буфер обмена. Для Linux установи xclip или pbcopy для Mac.')
+    try:
+        webbrowser.open_new_tab(url)
+        logger.info('Ссылка открыта в браузере.')
+    except Exception as e:
+        logger.warning(f'Не удалось открыть браузер: {e}')
+
     return url
 
 
