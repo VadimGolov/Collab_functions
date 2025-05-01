@@ -1,6 +1,7 @@
-def heicwebp_to_png(arguments: dict[str, str | list | bool]):
+from pathlib import Path
 
-    from typing import Iterator
+
+def heicwebp_to_png(arguments: dict[str, str | list | bool]):
     from pathlib import Path
     from PIL import Image, UnidentifiedImageError
     from pillow_heif import register_heif_opener
@@ -20,7 +21,6 @@ def heicwebp_to_png(arguments: dict[str, str | list | bool]):
             - input_path (str): Список из полных путей к исходным файлам (с указанием имен файлов). Обязательный.
             - output_path (str, optional): По умолчанию папка с исходными файлами. Полный путь папке для сохранения PNG-файлов. Не обязательный.
             - overwrite (bool, optional): По умолчанию True. Перезаписать выходные файлы, если файлы с такими именами существуют. Не обязательный.
-            - show_progress (bool, optional): По умолчанию True. Отображать прогресс-бар конвертации. Не обязательный.
 
     Returns:
         dict: Результат выполнения операции status : ('success' или 'error'),
@@ -34,173 +34,78 @@ def heicwebp_to_png(arguments: dict[str, str | list | bool]):
 
     # Проверка input_path
     input_path = arguments.get('input_path', None)
-    if input_path is None:
-        message: str = 'Обязательный параметр "input_path" отсутствует.'
-        return {'status': 'error', 'message': message}
-    elif not isinstance(input_path, str):
-        message: str = 'Параметр "input_path" должен быть должен быть строкой.'
-        return {'status': 'error', 'message': message}
 
-    # Проверяем каждый путь input_path
-    if not input_path.is_file():
-        message: str = f'Файл: {path} не найден'
-        return {'status': 'error', 'message': message}
+    if input_path is None:
+        err_code = 0
+    elif not isinstance(input_path, str):
+        err_code = 1
+    elif not Path(input_path).is_file():
+        err_code = 2
+    elif not Path(input_path).suffix in ('.heic', '.webp'):
+        err_code = 3
+    else:
+        err_code = -1
+
+    input_error = ['Обязательный параметр input_path отсутствует',
+                   'Параметр input_path должен быть должен быть строкой',
+                   f'Файл: {input_path} не найден',
+                   f'Файл {input_path} должен иметь тип .heic или .webp']
+
+    if err_code != -1:
+        return {'status': 'error', 'message': input_error}
 
     # Проверка output_path
-    output_path = arguments.get('output_path')
-    if output_path is not None:
-        output_dir = Path(output_path)
-        if output_dir.exists() and not output_dir.is_dir():
-            return {"status": "error", "message": f"Указанный 'output_path' не является папкой: {output_path}"}
-        # Создаём папку, если её нет
-        output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = arguments.get('output_path', None)
+
+    if output_path is None:
+        output_path = Path(input_path).parent
+    elif not isinstance(output_path, str):
+        err_code = 0
+    elif not Path(output_path).is_dir():
+        err_code = 1
     else:
-        # Если output_path не указан, берем папку первого файла
-        output_dir = validated_input_paths[0].parent
+        err_code = -1
+
+    output_error = ['Параметр output_path должен быть строкой',
+                    f'Папка: {output_path} не найдена или не является папкой']
+
+    if err_code != -1:
+        return {'status': 'error', 'message': output_error}
 
     # Проверка overwrite
     overwrite = arguments.get('overwrite', True)
     if not isinstance(overwrite, bool):
-        return {"status": "error", "message": "'overwrite' должен быть типа bool."}
+        return {'status': 'error', 'message': '"overwrite" должен быть типа bool'}
 
     # Проверка show_progress
-    show_progress = arguments.get('show_progress', True)
-    if not isinstance(show_progress, bool):
-        return {"status": "error", "message": "'show_progress' должен быть типа bool."}
+    # show_progress = arguments.get('show_progress', True)
+    # if not isinstance(show_progress, bool):
+    #     return {'status': 'error', 'message': '"show_progress" должен быть типа bool'}
 
-    # Все аргументы валидны, возвращаем их в нужной форме
-    return {
-        "status": "success",
-        "input_paths": validated_input_paths,
-        "output_path": output_dir,
-        "overwrite": overwrite,
-        "show_progress": show_progress
-    }
-#
+    # Конвертация фото
 
-#
-# # Проверка типа входного словаря аргументов - первый и критически важный шаг.
-# if not isinstance(arguments, dict):
-#     message = "Аргументы должны быть словарем (dict)."
-#     return {"status": "error", "message": message}
-#
-# # Извлечение обязательных строковых аргументов
-# input_img_path = arguments.get('input_path')
-# if not isinstance(input_img_path, list):
-#   message = "Файлы для конвертации должны быть переданны в виде списка."
-#   return {"status": "error", "message": message}
-#
-# output_img_path = arguments.get('output_path')
-# if not output_img_path:
-#     output_img_path = Path(output_img_path[0]).parent
-#
-# # Проверка наличия и типа обязательных строковых аргументов.
-# # Возврат ошибки, если они отсутствуют или имеют некорректный тип/значение.
-# if not isinstance(input_video_path, str) or not input_video_path:
-#     message = "Отсутствует или имеет некорректный тип обязательный параметр 'input_path' (ожидается непустая строка)."
-#     # Логгер функции еще может быть не полностью настроен, используем базовый логгер.
-#     logger = logging.getLogger(__name__)
-#     logger.error(message)
-#     return {"status": "error", "message": message}
-# if not isinstance(output_audio_path, str) or not output_audio_path:
-#     message = "Отсутствует или имеет некорректный тип обязательный параметр 'output_path' (ожидается непустая строка)."
-#     # Используем базовый логгер.
-#     logger = logging.getLogger(__name__)
-#     logger.error(message)
-#     return {"status": "error", "message": message}
-#
-# # Извлечение необязательных аргументов с значениями по умолчанию.
-# overwrite_existing = arguments.get('overwrite', False)
-# safe_base_directory = arguments.get('safe_base_directory', '/content/')
-# log_level_str = arguments.get('log_level', 'INFO')
-# show_progress_bar = arguments.get('show_progress', True)
-#
-# # Проверка типа 'safe_base_directory' (должна быть непустой строкой).
-# if not isinstance(safe_base_directory, str) or not safe_base_directory:
-#      message = "Отсутствует или имеет некорректный тип необязательный параметр 'safe_base_directory' (ожидается непустая строка)."
-#      # Используем базовый логгер.
-#      logger = logging.getLogger(__name__)
-#      logger.error(message)
-#      return {"status": "error", "message": message}
-#
-#
-# def get_path(initdir: Path) -> Path:
-#     path: str = ask_path(title='HEIC Convereter - Выберите папку', initialdir=initdir, mustexist=True)
-#
-#     if not path:
-#         print('В меню выбора папки была нажата кнопка "Отмена"')
-#         input('\nДля завершения программы нажмите Enter')
-#         sys.exit(1)
-#
-#     return Path(path)
-#
-#
-# def create_photo(img_path: Path) -> None | list[str]:
-#
-#     bad_images: list[str] = []
-#
-#     heic_images: list[Path] = list(img_path.glob('*.heic'))
-#     webp_images: list[Path] = list(img_path.glob('*.webp'))
-#
-#     if heic_images and webp_images:
-#         new_images: list[Path] = heic_images + webp_images
-#     elif heic_images:
-#         new_images: list[Path] = heic_images
-#     elif webp_images:
-#         new_images: list[Path] = webp_images
-#     else:
-#         print('В папке не найдено ни одного изображения heic или webp')
-#         input('\nДля завершения программы нажмите Enter')
-#         sys.exit(1)
-#
-#     progress_bar: Iterator = screen_decor.process_bar(title='Обработано файлов: ', max_value=len(new_images))
-#
-#     for num_image, one_image in enumerate(new_images, start=1):
-#
-#         next(progress_bar)
-#         photo_out: Path = Path(img_path, one_image.stem + '.png')
-#
-#         image_error: str = save_image(one_image, photo_out)
-#
-#         if image_error:
-#             bad_images.append(image_error)
-#
-#     if bad_images:
-#         return bad_images
-#     else:
-#         return None
-#
-#
-# def save_image(input_file: Path, output_file: Path, ) -> None | str:
-#
-#     register_heif_opener()
-#
-#     try:
-#         src_image: Image = Image.open(input_file)
-#
-#     except UnidentifiedImageError:
-#         return f'{input_file.name} - не удалось открыть файл'
-#
-#     if not src_image:
-#         return None
-#
-#     output_image: Image = src_image
-#
-#     output_image.save(output_file)
-#     output_image.close()
-#
-#     src_image.close()
-#
-#
-#
-# if __name__ == '__main__':
-#
-#     # Рабочая папка
-#     work_folder: Path = Path.cwd()
-#
-#     # Папка с картинками
-#     main_folder: Path = get_path(initdir=work_folder)
-#     info: list[str] = create_photo(main_folder)
-#
-#     if info:
-#         print(info)
+    register_heif_opener()
+
+    try:
+        src_image: Image = Image.open(input_path)
+
+    except UnidentifiedImageError:
+        return {'status': 'error', 'message': f'Не удалось открыть файл {input_path}'}
+
+    output_name = Path(input_path).stem + '.png'
+    output_image = Path(output_path, output_name)
+
+    if overwrite:
+        src_image.save(output_image)
+    else:
+        number = 1
+        while output_image.exists():
+            output_name = Path(input_path).stem + f'[{number}].png'
+            output_image = Path(output_path, output_name)
+            number += 1
+
+        src_image.save(output_image)
+
+    src_image.close()
+
+    return {'status': 'success', 'message': f'{output_image}'}
