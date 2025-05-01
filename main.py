@@ -6,10 +6,12 @@ from pathlib import Path
 from urllib.parse import quote_plus
 from loguru import logger
 
+from bracher import select_branch
+
 # ==== КОНФИГУРАЦИЯ ====
 GITHUB_USERNAME = 'VadimGolov'  # ← Замени на свой GitHub логин
 GITHUB_REPO = 'https://github.com/VadimGolov/Collab_functions.git'  # ← Замени на имя репозитория
-GITHUB_BRANCH = 'heicwebp_to_png'  # ← Или другую ветку, если нужно
+GITHUB_BRANCH = select_branch()  # ← Или другую ветку, если нужно
 # =======================
 
 

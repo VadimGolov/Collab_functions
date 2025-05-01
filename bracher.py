@@ -11,7 +11,7 @@ def get_branches():
     return [one_branch.strip('* ').strip() for one_branch in all_branches]
 
 
-def select_branch(branch_set):
+def select_branch():
     """
     Создает окно для выбора ветки из списка branches и возвращает выбранную ветку
     """
@@ -26,10 +26,13 @@ def select_branch(branch_set):
     label = tk.Label(root, text='Выберите ветку  репозитория Collab_functions', font=('Arial', 12), fg='white', bg='#2E2E2E')
     label.pack(pady=5)
 
+    # Получение списка веток
+    branch_heap = get_branches()
+
     # Список выбора веток
     branch_var = tk.StringVar()
-    branch_var.set(branch_set[0])  # Установим первую ветку по умолчанию
-    branch_menu = ttk.Combobox(root, textvariable=branch_var, values=branch_set, font=('Arial', 11), state='readonly', width=30)
+    branch_var.set(branch_heap[0])  # Установим первую ветку по умолчанию
+    branch_menu = ttk.Combobox(root, textvariable=branch_var, values=branch_heap, font=('Arial', 11), state='readonly', width=30)
     branch_menu.pack(pady=10)
 
     # Кнопка для подтверждения выбора
@@ -45,10 +48,4 @@ def select_branch(branch_set):
     # Запуск окна
     root.mainloop()
 
-    print(branch_var.get())
-
-    return branch_var.get()  # Возвращаем выбранную ветку
-
-#Программа
-branch_heap = get_branches()
-branch_to_checkout = select_branch(branch_heap)
+    return branch_var.get()
