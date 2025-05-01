@@ -28,35 +28,35 @@ def run_command(command, cwd=None):
     return result.stdout.strip()
 
 
-def convert_py_to_ipynb(py_path: Path):
+def convert_py_to_ipynb(py_path: Path, cwd: Path):
     """
     Конвертирует .py в .ipynb
     """
     ipynb_path = py_path.with_suffix('.ipynb')
     logger.info(f'Конвертация: {py_path.name} → {ipynb_path.name}')
-    run_command(f'ipynb-py-convert {py_path} {ipynb_path}')
+    run_command(f'ipynb-py-convert {py_path} {ipynb_path}', cwd=cwd)
     return ipynb_path
 
 
-def git_commit_and_push(file_path: Path):
+def git_commit_and_push(file_path: Path, cwd: Path):
     """
     Добавляет, коммитит и пушит .ipynb в Git
     """
     logger.info('Добавление файла в git...')
-    run_command(f'git add {file_path}')
+    run_command(f'git add {file_path}', cwd=cwd)
 
     logger.info('Создание коммита...')
-    run_command(f'git commit -m "Auto update {file_path.name}"')
+    run_command(f'git commit -m "Auto update {file_path.name}"', cwd=cwd)
 
     logger.info('Отправка в репозиторий...')
-    run_command('git push')
+    run_command('git push', cwd=cwd)
 
 
-def generate_colab_link(file_path: Path):
+def generate_colab_link(file_path: Path, cwd: Path):
     """
     Создает ссылку на открытие файла в Google Colab
     """
-    rel_path = file_path.relative_to(Path.cwd()).as_posix()
+    rel_path = file_path.relative_to(cwd).as_posix()
     url = f'https://colab.research.google.com/github/{GITHUB_USERNAME}/{GITHUB_REPO}/blob/{GITHUB_BRANCH}/{quote_plus(rel_path)}'
     logger.success(f'Colab URL: {url}')
     # try:
@@ -74,18 +74,27 @@ def generate_colab_link(file_path: Path):
 
 
 def main():
-    if len(sys.argv) != 2:
-        logger.error('Укажите путь к .py файлу: python sync_to_colab.py my_script.py')
+    # Определяем текущую рабочую директорию проекта
+    project_root = Path.cwd()
+
+    # Находим все .py-файлы, кроме main.py
+    py_files = list(project_root.glob('*.py'))
+
+    if len(py_files) == 0:
+        logger.error('В этом проекте нет .py-файлов')
+        sys.exit(1)
+    elif len(py_files) > 1:
+        logger.error('В этом проекте найдено несколько .py-файлов. Необходим только один.')
+        for f in py_files:
+            logger.error(f' - {f.name}')
         sys.exit(1)
 
-    py_file = Path(sys.argv[1])
-    if not py_file.exists() or py_file.suffix != '.py':
-        logger.error('Файл не найден или не является .py')
-        sys.exit(1)
+    py_file = py_files[0].resolve()
+    logger.info(f'Найден файл: {py_file.name}')
 
-    ipynb_file = convert_py_to_ipynb(py_file)
-    git_commit_and_push(ipynb_file)
-    generate_colab_link(ipynb_file)
+    ipynb_file = convert_py_to_ipynb(py_file, cwd=project_root)
+    git_commit_and_push(ipynb_file, cwd=project_root)
+    generate_colab_link(ipynb_file, cwd=project_root)
 
 
 if __name__ == '__main__':
