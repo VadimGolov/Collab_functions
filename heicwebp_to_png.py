@@ -1,4 +1,5 @@
 def heicwebp_to_png(arguments: dict[str, str | list | bool]) -> dict[str, str]:
+
     from pathlib import Path
     from PIL import Image, UnidentifiedImageError
     from pillow_heif import register_heif_opener
@@ -73,11 +74,6 @@ def heicwebp_to_png(arguments: dict[str, str | list | bool]) -> dict[str, str]:
     overwrite: bool = arguments.get('overwrite', True)
     if not isinstance(overwrite, bool):
         return {'status': 'error', 'message': '"overwrite" должен быть типа bool'}
-
-    # Проверка show_progress
-    # show_progress = arguments.get('show_progress', True)
-    # if not isinstance(show_progress, bool):
-    #     return {'status': 'error', 'message': '"show_progress" должен быть типа bool'}
 
     # Конвертация фото
 
