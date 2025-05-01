@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 from loguru import logger
 
-from bracher import select_branch
+from work.bracher import select_branch
 
 # ==== КОНФИГУРАЦИЯ ====
 GITHUB_USERNAME = 'VadimGolov'  # ← Замени на свой GitHub логин
