@@ -1,4 +1,5 @@
 def heicwebp_to_png(arguments: dict[str, str | bool]) -> dict[str, str]:
+
     import requests
     from io import BytesIO
     from pathlib import Path
